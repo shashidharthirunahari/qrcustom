@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Custom QR Code Generator</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Custom QR Code Generator</h1>
+
+    <input type="text" id="qr-input" placeholder="Enter text or URL" />
+
+    <div class="row">
+      <label>Foreground:</label>
+      <input type="color" id="fg-color" value="#000000" />
+      <label>Background:</label>
+      <input type="color" id="bg-color" value="#ffffff" />
+    </div>
+
+    <div class="row">
+      <label>Upload Logo (optional):</label>
+      <input type="file" id="logo-upload" accept="image/*" />
+    </div>
+
+    <div class="row">
+      <label>Download as:</label>
+      <select id="file-type">
+        <option value="png">PNG</option>
+        <option value="svg">SVG (coming soon)</option>
+      </select>
+    </div>
+
+    <button id="generate-btn">Generate</button>
+    <canvas id="qr-canvas"></canvas>
+    <button id="download-btn">Download</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
