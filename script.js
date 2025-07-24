@@ -26,6 +26,20 @@ function onTypeChange() {
   } else if (type === "payment") {
     fields.innerHTML = `
       <input type="text" id="upi" placeholder="UPI / Payment URL" />
+
+      else if (type === "sms") {
+  fields.innerHTML = `
+    <input type="text" id="smsNumber" placeholder="Phone Number" />
+    <input type="text" id="smsMessage" placeholder="Message" />
+  `;
+} else if (type === "email") {
+  fields.innerHTML = `
+    <input type="email" id="emailTo" placeholder="Recipient Email" />
+    <input type="text" id="emailSubject" placeholder="Subject" />
+    <textarea id="emailBody" placeholder="Email Body"></textarea>
+  `;
+}
+
     `;
   }
 }
