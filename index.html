@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR Custom Generator</title>
+  <title>QR Custom with Logo</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,7 +15,7 @@
       background: white;
       padding: 20px;
       border-radius: 12px;
-      max-width: 400px;
+      max-width: 420px;
       margin: auto;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
@@ -27,12 +27,16 @@
     }
     #qrcode {
       margin-top: 20px;
+      position: relative;
+    }
+    canvas {
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>QR Custom Generator</h2>
+    <h2>QR Generator with Logo</h2>
 
     <select id="qrType" onchange="updateInputFields()">
       <option value="url">Website URL</option>
@@ -45,14 +49,28 @@
 
     <div id="inputFields"></div>
 
-    <button onclick="generateQRCode()">Generate QR</button>
+    <label>Foreground Color: <input type="color" id="fgColor" value="#000000"></label><br>
+    <label>Background Color: <input type="color" id="bgColor" value="#ffffff"></label><br>
+    <label>Upload Logo: <input type="file" id="logoInput" accept="image/*"></label><br>
 
+    <button onclick="generateQRCode()">Generate QR</button>
     <div id="qrcode"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
-    let qrcode;
+    let logoImage = null;
+
+    document.getElementById("logoInput").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        logoImage = new Image();
+        logoImage.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
 
     function updateInputFields() {
       const type = document.getElementById("qrType").value;
@@ -124,15 +142,38 @@
           break;
       }
 
-      document.getElementById("qrcode").innerHTML = "";
-      qrcode = new QRCode(document.getElementById("qrcode"), {
+      const fgColor = document.getElementById("fgColor").value;
+      const bgColor = document.getElementById("bgColor").value;
+
+      const tempDiv = document.createElement("div");
+      new QRCode(tempDiv, {
         text: data,
         width: 200,
-        height: 200
+        height: 200,
+        colorDark: fgColor,
+        colorLight: bgColor,
+        correctLevel: QRCode.CorrectLevel.H
       });
+
+      const qrCanvas = tempDiv.querySelector("canvas");
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 200;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(qrCanvas, 0, 0);
+
+      if (logoImage) {
+        const logoSize = 50;
+        ctx.drawImage(logoImage, (canvas.width - logoSize) / 2, (canvas.height - logoSize) / 2, logoSize, logoSize);
+      }
+
+      document.getElementById("qrcode").innerHTML = "";
+      document.getElementById("qrcode").appendChild(canvas);
     }
 
-    updateInputFields(); // Load default inputs
+    updateInputFields();
   </script>
 </body>
 </html>
