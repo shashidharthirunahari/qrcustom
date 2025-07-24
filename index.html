@@ -15,7 +15,15 @@
       <option value="wifi">WiFi Login</option>
       <option value="vcard">vCard Contact</option>
       <option value="payment">Payment / UPI</option>
-    </select>
+    <select id="qrType" onchange="onTypeChange()">
+  <option value="text">Text / URL</option>
+  <option value="wifi">WiFi Login</option>
+  <option value="vcard">vCard Contact</option>
+  <option value="payment">Payment / UPI</option>
+  <option value="sms">SMS</option>         <!-- ADD THIS -->
+  <option value="email">Email</option>     <!-- ADD THIS -->
+</select>
+
 
     <div id="formFields"></div>
 
