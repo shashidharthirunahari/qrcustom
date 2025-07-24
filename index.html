@@ -2,36 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR Code Generator with Logo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced QR Code Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #f1f1f1;
       text-align: center;
-      background: #f4f4f4;
       padding: 30px;
     }
     h1 {
-      font-size: 24px;
       margin-bottom: 20px;
     }
-    input[type="text"] {
-      width: 80%;
-      max-width: 400px;
+    input, select, textarea {
+      margin: 8px;
       padding: 10px;
       font-size: 16px;
+      width: 80%;
+      max-width: 400px;
       border: 1px solid #ccc;
       border-radius: 6px;
-    }
-    label {
-      display: block;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    input[type="file"],
-    input[type="range"],
-    button {
-      margin-top: 10px;
     }
     canvas {
       margin-top: 20px;
@@ -42,63 +32,134 @@
     button {
       background: #4CAF50;
       color: white;
-      padding: 10px 16px;
-      font-size: 16px;
+      padding: 10px 20px;
+      margin-top: 20px;
       border: none;
       border-radius: 6px;
+      font-size: 16px;
       cursor: pointer;
     }
     button:hover {
-      background: #45a049;
+      background: #388e3c;
     }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
-  <h1>🧩 QR Code Generator + Custom Logo</h1>
+  <h1>🔧 Advanced QR Code Generator</h1>
 
-  <input type="text" id="qrText" placeholder="Enter URL or text" /><br/>
+  <select id="qrType" onchange="updateForm(); generateQR()">
+    <option value="text">Text / URL</option>
+    <option value="wifi">Wi-Fi</option>
+    <option value="contact">Contact</option>
+    <option value="vcard">vCard</option>
+    <option value="photo">Photo URL</option>
+  </select>
 
-  <label>📷 Upload Logo</label>
-  <input type="file" id="logoInput" accept="image/*" /><br/>
+  <div id="form-text">
+    <input type="text" id="qrText" placeholder="Enter text or URL" oninput="generateQR()" />
+  </div>
 
-  <label>📏 Logo Size (% of QR Code)</label>
-  <input type="range" id="logoSize" min="10" max="40" value="20" /><br/>
+  <div id="form-wifi" class="hidden">
+    <input type="text" id="wifi-ssid" placeholder="Wi-Fi SSID" oninput="generateQR()" />
+    <input type="text" id="wifi-password" placeholder="Wi-Fi Password" oninput="generateQR()" />
+  </div>
 
-  <button onclick="generateQR()">Generate QR Code</button>
+  <div id="form-contact" class="hidden">
+    <input type="text" id="contact-name" placeholder="Name" oninput="generateQR()" />
+    <input type="text" id="contact-phone" placeholder="Phone" oninput="generateQR()" />
+    <input type="text" id="contact-email" placeholder="Email" oninput="generateQR()" />
+  </div>
 
-  <br><br>
+  <div id="form-vcard" class="hidden">
+    <input type="text" id="v-name" placeholder="Full Name" oninput="generateQR()" />
+    <input type="text" id="v-org" placeholder="Organization" oninput="generateQR()" />
+    <input type="text" id="v-title" placeholder="Job Title" oninput="generateQR()" />
+    <input type="text" id="v-phone" placeholder="Phone" oninput="generateQR()" />
+    <input type="text" id="v-email" placeholder="Email" oninput="generateQR()" />
+  </div>
+
+  <div id="form-photo" class="hidden">
+    <input type="text" id="photo-url" placeholder="Paste image URL" oninput="generateQR()" />
+  </div>
+
+  <label>QR Color:</label>
+  <input type="color" id="qrColor" value="#000000" onchange="generateQR()" />
+
+  <label>Background Color:</label>
+  <input type="color" id="bgColor" value="#ffffff" onchange="generateQR()" />
+
+  <label>Upload Logo:</label>
+  <input type="file" id="logoInput" accept="image/*" onchange="generateQR()" />
+
+  <label>Logo Size:</label>
+  <input type="range" id="logoSize" min="10" max="40" value="20" onchange="generateQR()" />
+
   <canvas id="qrCanvas" width="300" height="300"></canvas>
+  <br>
+  <button onclick="downloadQR()">Download QR</button>
 
-  <!-- QR Code Generator Library -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
-
   <script>
+    function updateForm() {
+      const type = document.getElementById("qrType").value;
+      document.querySelectorAll("#form-text, #form-wifi, #form-contact, #form-vcard, #form-photo").forEach(f => f.classList.add("hidden"));
+      document.getElementById("form-" + type).classList.remove("hidden");
+    }
+
+    function getQRData() {
+      const type = document.getElementById("qrType").value;
+      if (type === "text") return document.getElementById("qrText").value;
+      if (type === "wifi") {
+        const ssid = document.getElementById("wifi-ssid").value;
+        const pass = document.getElementById("wifi-password").value;
+        return `WIFI:S:${ssid};T:WPA;P:${pass};;`;
+      }
+      if (type === "contact") {
+        const name = document.getElementById("contact-name").value;
+        const phone = document.getElementById("contact-phone").value;
+        const email = document.getElementById("contact-email").value;
+        return `MECARD:N:${name};TEL:${phone};EMAIL:${email};;`;
+      }
+      if (type === "vcard") {
+        const n = document.getElementById("v-name").value;
+        const o = document.getElementById("v-org").value;
+        const t = document.getElementById("v-title").value;
+        const p = document.getElementById("v-phone").value;
+        const e = document.getElementById("v-email").value;
+        return `BEGIN:VCARD\nVERSION:3.0\nN:${n}\nORG:${o}\nTITLE:${t}\nTEL:${p}\nEMAIL:${e}\nEND:VCARD`;
+      }
+      if (type === "photo") return document.getElementById("photo-url").value;
+    }
+
     function generateQR() {
       const canvas = document.getElementById("qrCanvas");
       const ctx = canvas.getContext("2d");
-      const text = document.getElementById("qrText").value || "https://example.com";
+      const text = getQRData() || "Hello";
+      const qrColor = document.getElementById("qrColor").value;
+      const bgColor = document.getElementById("bgColor").value;
       const logoSizePercent = parseInt(document.getElementById("logoSize").value);
 
-      // Generate QR Code
-      const qr = qrcode(0, 'L');
+      const qr = qrcode(0, "H");
       qr.addData(text);
       qr.make();
 
       const count = qr.getModuleCount();
-      const tileSize = canvas.width / count;
+      const tileW = canvas.width / count;
+      const tileH = canvas.height / count;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw QR pattern
       for (let row = 0; row < count; row++) {
         for (let col = 0; col < count; col++) {
-          ctx.fillStyle = qr.isDark(row, col) ? '#000' : '#fff';
-          ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+          ctx.fillStyle = qr.isDark(row, col) ? qrColor : bgColor;
+          ctx.fillRect(col * tileW, row * tileH, tileW, tileH);
         }
       }
 
-      // Add Logo
       const file = document.getElementById("logoInput").files[0];
       if (file) {
         const reader = new FileReader();
@@ -108,13 +169,33 @@
             const size = canvas.width * (logoSizePercent / 100);
             const x = (canvas.width - size) / 2;
             const y = (canvas.height - size) / 2;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, size/2, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
             ctx.drawImage(logo, x, y, size, size);
+            ctx.restore();
           };
           logo.src = e.target.result;
         };
         reader.readAsDataURL(file);
       }
     }
+
+    function downloadQR() {
+      const canvas = document.getElementById("qrCanvas");
+      const link = document.createElement("a");
+      link.download = "qr_code.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
+    window.onload = () => {
+      updateForm();
+      generateQR();
+    };
   </script>
+
 </body>
 </html>
