@@ -3,177 +3,118 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR Custom with Logo</title>
+  <title>QR Code Generator with Logo</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding: 20px;
       background: #f4f4f4;
+      padding: 30px;
     }
-    .container {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 420px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
     }
-    input, select, textarea, button {
-      width: 90%;
+    input[type="text"] {
+      width: 80%;
+      max-width: 400px;
       padding: 10px;
-      margin: 10px 0;
       font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
-    #qrcode {
+    label {
+      display: block;
       margin-top: 20px;
-      position: relative;
+      font-weight: bold;
+    }
+    input[type="file"],
+    input[type="range"],
+    button {
+      margin-top: 10px;
     }
     canvas {
-      margin-top: 10px;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 8px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>QR Generator with Logo</h2>
 
-    <select id="qrType" onchange="updateInputFields()">
-      <option value="url">Website URL</option>
-      <option value="wifi">Wi-Fi</option>
-      <option value="phone">Phone</option>
-      <option value="sms">SMS</option>
-      <option value="email">Email</option>
-      <option value="text">Plain Text</option>
-    </select>
+  <h1>🧩 QR Code Generator + Custom Logo</h1>
 
-    <div id="inputFields"></div>
+  <input type="text" id="qrText" placeholder="Enter URL or text" /><br/>
 
-    <label>Foreground Color: <input type="color" id="fgColor" value="#000000"></label><br>
-    <label>Background Color: <input type="color" id="bgColor" value="#ffffff"></label><br>
-    <label>Upload Logo: <input type="file" id="logoInput" accept="image/*"></label><br>
+  <label>📷 Upload Logo</label>
+  <input type="file" id="logoInput" accept="image/*" /><br/>
 
-    <button onclick="generateQRCode()">Generate QR</button>
-    <div id="qrcode"></div>
-  </div>
+  <label>📏 Logo Size (% of QR Code)</label>
+  <input type="range" id="logoSize" min="10" max="40" value="20" /><br/>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <button onclick="generateQR()">Generate QR Code</button>
+
+  <br><br>
+  <canvas id="qrCanvas" width="300" height="300"></canvas>
+
+  <!-- QR Code Generator Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
+
   <script>
-    let logoImage = null;
-
-    document.getElementById("logoInput").addEventListener("change", function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        logoImage = new Image();
-        logoImage.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    function updateInputFields() {
-      const type = document.getElementById("qrType").value;
-      const inputDiv = document.getElementById("inputFields");
-      inputDiv.innerHTML = "";
-
-      switch (type) {
-        case "url":
-          inputDiv.innerHTML = '<input id="data1" placeholder="Enter website URL">';
-          break;
-        case "wifi":
-          inputDiv.innerHTML = `
-            <input id="ssid" placeholder="Wi-Fi Name (SSID)">
-            <input id="pass" placeholder="Password">
-            <select id="encryption">
-              <option value="WPA">WPA/WPA2</option>
-              <option value="WEP">WEP</option>
-              <option value="">None</option>
-            </select>`;
-          break;
-        case "phone":
-          inputDiv.innerHTML = '<input id="data1" placeholder="Enter phone number">';
-          break;
-        case "sms":
-          inputDiv.innerHTML = `
-            <input id="data1" placeholder="Phone number">
-            <input id="data2" placeholder="Message">`;
-          break;
-        case "email":
-          inputDiv.innerHTML = `
-            <input id="data1" placeholder="Email address">
-            <input id="data2" placeholder="Subject">
-            <textarea id="data3" placeholder="Message" rows="3"></textarea>`;
-          break;
-        case "text":
-          inputDiv.innerHTML = '<textarea id="data1" placeholder="Enter your text" rows="4"></textarea>';
-          break;
-      }
-    }
-
-    function generateQRCode() {
-      const type = document.getElementById("qrType").value;
-      let data = "";
-
-      switch (type) {
-        case "url":
-          data = document.getElementById("data1").value;
-          break;
-        case "wifi":
-          const ssid = document.getElementById("ssid").value;
-          const pass = document.getElementById("pass").value;
-          const enc = document.getElementById("encryption").value;
-          data = `WIFI:T:${enc};S:${ssid};P:${pass};;`;
-          break;
-        case "phone":
-          data = `tel:${document.getElementById("data1").value}`;
-          break;
-        case "sms":
-          data = `sms:${document.getElementById("data1").value}?body=${document.getElementById("data2").value}`;
-          break;
-        case "email":
-          const email = document.getElementById("data1").value;
-          const subject = document.getElementById("data2").value;
-          const body = document.getElementById("data3").value;
-          data = `mailto:${email}?subject=${subject}&body=${body}`;
-          break;
-        case "text":
-          data = document.getElementById("data1").value;
-          break;
-      }
-
-      const fgColor = document.getElementById("fgColor").value;
-      const bgColor = document.getElementById("bgColor").value;
-
-      const tempDiv = document.createElement("div");
-      new QRCode(tempDiv, {
-        text: data,
-        width: 200,
-        height: 200,
-        colorDark: fgColor,
-        colorLight: bgColor,
-        correctLevel: QRCode.CorrectLevel.H
-      });
-
-      const qrCanvas = tempDiv.querySelector("canvas");
-      const canvas = document.createElement("canvas");
-      canvas.width = canvas.height = 200;
+    function generateQR() {
+      const canvas = document.getElementById("qrCanvas");
       const ctx = canvas.getContext("2d");
+      const text = document.getElementById("qrText").value || "https://example.com";
+      const logoSizePercent = parseInt(document.getElementById("logoSize").value);
 
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(qrCanvas, 0, 0);
+      // Generate QR Code
+      const qr = qrcode(0, 'L');
+      qr.addData(text);
+      qr.make();
 
-      if (logoImage) {
-        const logoSize = 50;
-        ctx.drawImage(logoImage, (canvas.width - logoSize) / 2, (canvas.height - logoSize) / 2, logoSize, logoSize);
+      const count = qr.getModuleCount();
+      const tileSize = canvas.width / count;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw QR pattern
+      for (let row = 0; row < count; row++) {
+        for (let col = 0; col < count; col++) {
+          ctx.fillStyle = qr.isDark(row, col) ? '#000' : '#fff';
+          ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+        }
       }
 
-      document.getElementById("qrcode").innerHTML = "";
-      document.getElementById("qrcode").appendChild(canvas);
+      // Add Logo
+      const file = document.getElementById("logoInput").files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const logo = new Image();
+          logo.onload = function () {
+            const size = canvas.width * (logoSizePercent / 100);
+            const x = (canvas.width - size) / 2;
+            const y = (canvas.height - size) / 2;
+            ctx.drawImage(logo, x, y, size, size);
+          };
+          logo.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
     }
-
-    updateInputFields();
   </script>
 </body>
 </html>
