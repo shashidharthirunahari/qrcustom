@@ -1,50 +1,124 @@
-const input = document.getElementById("qr-input");
-const fgColor = document.getElementById("fg-color");
-const bgColor = document.getElementById("bg-color");
-const fileType = document.getElementById("file-type");
-const canvas = document.getElementById("qr-canvas");
-const logoUpload = document.getElementById("logo-upload");
-const generateBtn = document.getElementById("generate-btn");
-const downloadBtn = document.getElementById("download-btn");
+let qrCode;
 
-let qr;
+function onTypeChange() {
+  const type = document.getElementById("qrType").value;
+  const fields = document.getElementById("formFields");
+  fields.innerHTML = "";
 
-generateBtn.addEventListener("click", () => {
-  const text = input.value.trim();
-  if (!text) return alert("Please enter some text.");
-  
-  qr = new QRious({
-    element: canvas,
-    value: text,
-    size: 250,
-    foreground: fgColor.value,
-    background: bgColor.value
+  if (type === "text") {
+    fields.innerHTML = `<input type="text" id="textInput" placeholder="Enter text or URL" />`;
+  } else if (type === "wifi") {
+    fields.innerHTML = `
+      <input type="text" id="ssid" placeholder="WiFi SSID" />
+      <input type="password" id="password" placeholder="WiFi Password" />
+      <select id="encryption">
+        <option value="WPA">WPA/WPA2</option>
+        <option value="WEP">WEP</option>
+        <option value="nopass">No Password</option>
+      </select>
+    `;
+  } else if (type === "vcard") {
+    fields.innerHTML = `
+      <input type="text" id="fullName" placeholder="Full Name" />
+      <input type="text" id="phone" placeholder="Phone Number" />
+      <input type="email" id="email" placeholder="Email" />
+    `;
+  } else if (type === "payment") {
+    fields.innerHTML = `
+      <input type="text" id="upi" placeholder="UPI / Payment URL" />
+    `;
+  }
+}
+
+function getQRData() {
+  const type = document.getElementById("qrType").value;
+
+  if (type === "text") {
+    return document.getElementById("textInput").value;
+  }
+
+  if (type === "wifi") {
+    const ssid = document.getElementById("ssid").value;
+    const password = document.getElementById("password").value;
+    const enc = document.getElementById("encryption").value;
+    return `WIFI:S:${ssid};T:${enc};P:${password};;`;
+  }
+
+  if (type === "vcard") {
+    const name = document.getElementById("fullName").value;
+    const phone = document.getElementById("phone").value;
+    const email = document.getElementById("email").value;
+
+    return `BEGIN:VCARD
+VERSION:3.0
+FN:${name}
+TEL:${phone}
+EMAIL:${email}
+END:VCARD`;
+  }
+
+  if (type === "payment") {
+    return document.getElementById("upi").value;
+  }
+}
+
+function generateQRCode() {
+  const fgColor = document.getElementById("fgColor").value;
+  const bgColor = document.getElementById("bgColor").value;
+  const ecLevel = document.getElementById("ecLevel").value;
+  const data = getQRData();
+
+  if (qrCode) {
+    document.getElementById("qrPreview").innerHTML = "";
+  }
+
+  qrCode = new QRCodeStyling({
+    width: 300,
+    height: 300,
+    type: "svg",
+    data: data,
+    image: "",
+    dotsOptions: {
+      color: fgColor,
+      type: "rounded"
+    },
+    backgroundOptions: {
+      color: bgColor,
+    },
+    imageOptions: {
+      crossOrigin: "anonymous",
+      margin: 10
+    },
+    qrOptions: {
+      errorCorrectionLevel: ecLevel
+    }
   });
 
-  const file = logoUpload.files[0];
-  if (file) {
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    img.onload = () => {
-      const size = 50;
-      const x = (canvas.width - size) / 2;
-      const y = (canvas.height - size) / 2;
-      ctx.drawImage(img, x, y, size, size);
-    };
-    img.src = URL.createObjectURL(file);
-  }
+  qrCode.append(document.getElementById("qrPreview"));
+  // Clear circular logo overlay on new generate (until user uploads)
+  document.getElementById("logoCircle").src = "";
+}
+
+// Circular logo overlay
+document.getElementById("logoUpload").addEventListener("change", function () {
+  const file = this.files[0];
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    // Show circular overlay logo on QR preview
+    document.getElementById("logoCircle").src = e.target.result;
+    // Clear embedded logo inside QR since we're showing overlay
+    if (qrCode) {
+      qrCode.update({ image: "" });
+    }
+  };
+  if (file) reader.readAsDataURL(file);
 });
 
-downloadBtn.addEventListener("click", () => {
-  if (!qr) return alert("Generate the QR code first.");
-  const type = fileType.value;
-
-  if (type === "png") {
-    const link = document.createElement("a");
-    link.download = "qr-code.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  } else {
-    alert("SVG support is coming soon.");
+function downloadQRCode(ext) {
+  if (qrCode) {
+    qrCode.download({ name: "qr-code", extension: ext });
   }
-});
+}
+
+// Initialize form fields
+onTypeChange();
