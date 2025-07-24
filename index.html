@@ -3,41 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Custom QR Code Generator</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>QR Custom Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select, textarea, button {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    #qrcode {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>Custom QR Code Generator</h1>
+    <h2>QR Custom Generator</h2>
 
-    <input type="text" id="qr-input" placeholder="Enter text or URL" />
+    <select id="qrType" onchange="updateInputFields()">
+      <option value="url">Website URL</option>
+      <option value="wifi">Wi-Fi</option>
+      <option value="phone">Phone</option>
+      <option value="sms">SMS</option>
+      <option value="email">Email</option>
+      <option value="text">Plain Text</option>
+    </select>
 
-    <div class="row">
-      <label>Foreground:</label>
-      <input type="color" id="fg-color" value="#000000" />
-      <label>Background:</label>
-      <input type="color" id="bg-color" value="#ffffff" />
-    </div>
+    <div id="inputFields"></div>
 
-    <div class="row">
-      <label>Upload Logo (optional):</label>
-      <input type="file" id="logo-upload" accept="image/*" />
-    </div>
+    <button onclick="generateQRCode()">Generate QR</button>
 
-    <div class="row">
-      <label>Download as:</label>
-      <select id="file-type">
-        <option value="png">PNG</option>
-        <option value="svg">SVG (coming soon)</option>
-      </select>
-    </div>
-
-    <button id="generate-btn">Generate</button>
-    <canvas id="qr-canvas"></canvas>
-    <button id="download-btn">Download</button>
+    <div id="qrcode"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
-  <script src="script.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    let qrcode;
+
+    function updateInputFields() {
+      const type = document.getElementById("qrType").value;
+      const inputDiv = document.getElementById("inputFields");
+      inputDiv.innerHTML = "";
+
+      switch (type) {
+        case "url":
+          inputDiv.innerHTML = '<input id="data1" placeholder="Enter website URL">';
+          break;
+        case "wifi":
+          inputDiv.innerHTML = `
+            <input id="ssid" placeholder="Wi-Fi Name (SSID)">
+            <input id="pass" placeholder="Password">
+            <select id="encryption">
+              <option value="WPA">WPA/WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="">None</option>
+            </select>`;
+          break;
+        case "phone":
+          inputDiv.innerHTML = '<input id="data1" placeholder="Enter phone number">';
+          break;
+        case "sms":
+          inputDiv.innerHTML = `
+            <input id="data1" placeholder="Phone number">
+            <input id="data2" placeholder="Message">`;
+          break;
+        case "email":
+          inputDiv.innerHTML = `
+            <input id="data1" placeholder="Email address">
+            <input id="data2" placeholder="Subject">
+            <textarea id="data3" placeholder="Message" rows="3"></textarea>`;
+          break;
+        case "text":
+          inputDiv.innerHTML = '<textarea id="data1" placeholder="Enter your text" rows="4"></textarea>';
+          break;
+      }
+    }
+
+    function generateQRCode() {
+      const type = document.getElementById("qrType").value;
+      let data = "";
+
+      switch (type) {
+        case "url":
+          data = document.getElementById("data1").value;
+          break;
+        case "wifi":
+          const ssid = document.getElementById("ssid").value;
+          const pass = document.getElementById("pass").value;
+          const enc = document.getElementById("encryption").value;
+          data = `WIFI:T:${enc};S:${ssid};P:${pass};;`;
+          break;
+        case "phone":
+          data = `tel:${document.getElementById("data1").value}`;
+          break;
+        case "sms":
+          data = `sms:${document.getElementById("data1").value}?body=${document.getElementById("data2").value}`;
+          break;
+        case "email":
+          const email = document.getElementById("data1").value;
+          const subject = document.getElementById("data2").value;
+          const body = document.getElementById("data3").value;
+          data = `mailto:${email}?subject=${subject}&body=${body}`;
+          break;
+        case "text":
+          data = document.getElementById("data1").value;
+          break;
+      }
+
+      document.getElementById("qrcode").innerHTML = "";
+      qrcode = new QRCode(document.getElementById("qrcode"), {
+        text: data,
+        width: 200,
+        height: 200
+      });
+    }
+
+    updateInputFields(); // Load default inputs
+  </script>
 </body>
 </html>
