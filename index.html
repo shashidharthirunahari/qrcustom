@@ -2,61 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Advanced QR Code Generator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Advanced QR Code Generator</h1>
+    <h1>🚀 Advanced QR Code Generator</h1>
 
-    <label for="qrType">Select QR Code Type:</label>
-    <select id="qrType" onchange="onTypeChange()">
-      <option value="text">Text / URL</option>
-      <option value="wifi">WiFi Login</option>
-      <option value="vcard">vCard Contact</option>
-      <option value="payment">Payment / UPI</option>
-      <option value="sms">SMS</option>
-      <option value="email">Email</option>
-      <option value="location">Location</option>
-      <option value="calendar">Calendar Event</option>
-    </select>
-
-    <div id="formFields"></div>
-
-    <label>Foreground Color:
-      <input type="color" id="fgColor" value="#000000" />
-    </label>
-
-    <label>Background Color:
-      <input type="color" id="bgColor" value="#ffffff" />
-    </label>
-
-    <label>Error Correction Level:
-      <select id="ecLevel">
-        <option value="L">L (Low - ~7%)</option>
-        <option value="M" selected>M (Medium - ~15%)</option>
-        <option value="Q">Q (Quartile - ~25%)</option>
-        <option value="H">H (High - ~30%)</option>
+    <div class="section">
+      <label for="qrType">QR Code Type:</label>
+      <select id="qrType" onchange="onTypeChange()">
+        <option value="text">Text / URL</option>
+        <option value="wifi">WiFi Login</option>
+        <option value="vcard">vCard Contact</option>
+        <option value="payment">Payment / UPI</option>
+        <option value="email">Email</option>
+        <option value="sms">SMS</option>
+        <option value="location">Location</option>
+        <option value="event">Calendar Event</option>
       </select>
-    </label>
-
-    <label>Upload Logo:
-      <input type="file" id="logoUpload" />
-    </label>
-
-    <div class="buttons">
-      <button onclick="generateQRCode()">Generate QR</button>
-      <button onclick="downloadQRCode('png')">Download PNG</button>
-      <button onclick="downloadQRCode('svg')">Download SVG</button>
     </div>
 
-    <div class="qr-wrapper">
-      <div id="qrPreview"></div>
-      <img id="logoCircle" class="circle-logo" />
+    <div id="formFields" class="section"></div>
+
+    <div class="section">
+      <label>Foreground Color:</label>
+      <input type="color" id="fgColor" value="#000000" />
+
+      <label>Background Color:</label>
+      <input type="color" id="bgColor" value="#ffffff" />
+
+      <label>Error Correction Level:</label>
+      <select id="errorCorrection">
+        <option value="L">L (Low)</option>
+        <option value="M" selected>M (Medium)</option>
+        <option value="Q">Q (Quartile)</option>
+        <option value="H">H (High)</option>
+      </select>
+
+      <label>Upload Logo (optional):</label>
+      <input type="file" id="logoUpload" accept="image/*" />
+    </div>
+
+    <button onclick="generateQRCode()">✨ Generate QR</button>
+
+    <div id="qrCodeContainer"></div>
+
+    <div class="download-buttons">
+      <button onclick="downloadPNG()">📥 Download PNG</button>
+      <button onclick="downloadSVG()">📥 Download SVG</button>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
