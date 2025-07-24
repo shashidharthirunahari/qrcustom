@@ -1,22 +1,20 @@
-/* Import clean Google font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
 body {
   margin: 0;
   padding: 2rem;
-  background: #f4f6f8;
+  background: #f3f4f6;
   font-family: 'Inter', sans-serif;
   display: flex;
   justify-content: center;
   min-height: 100vh;
 }
 
-/* Container Card Style */
 .container {
   background: #ffffff;
-  padding: 2.5rem 2rem;
+  padding: 2rem 2.5rem;
   border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
   max-width: 540px;
   width: 100%;
 }
@@ -24,21 +22,26 @@ body {
 h1 {
   font-size: 1.75rem;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   color: #1f2937;
 }
 
-/* Form labels */
 label {
   font-weight: 600;
   color: #374151;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 0.4rem;
 }
 
-/* Input, Select, Color Pickers */
-input,
 select,
+input[type="text"],
+input[type="url"],
+input[type="email"],
+input[type="color"],
+input[type="tel"],
+input[type="file"],
+input[type="number"],
+input[type="datetime-local"],
 textarea {
   width: 100%;
   padding: 0.55rem 0.75rem;
@@ -54,24 +57,23 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  outline: none;
   border-color: #3b82f6;
   background-color: #fff;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  outline: none;
 }
 
-/* Upload Field */
-input[type="file"] {
-  padding: 0.3rem;
+textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
-/* Buttons */
 button {
   background-color: #3b82f6;
   color: white;
   border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+  padding: 0.75rem;
+  border-radius: 10px;
   width: 100%;
   margin-top: 1rem;
   font-weight: 600;
@@ -85,7 +87,20 @@ button:hover {
   transform: translateY(-1px);
 }
 
-/* QR Code Box */
+.section {
+  margin-bottom: 2rem;
+}
+
+.download-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.download-buttons button {
+  flex: 1;
+}
+
 #qrCodeContainer {
   margin-top: 2rem;
   text-align: center;
@@ -95,31 +110,4 @@ button:hover {
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   max-width: 100%;
-}
-
-/* Optional Field Note */
-.optional {
-  font-size: 0.9rem;
-  font-style: italic;
-  color: #6b7280;
-  margin-top: -0.5rem;
-  margin-bottom: 0.8rem;
-}
-
-/* Section divider */
-.section {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  body {
-    padding: 1rem;
-  }
-
-  .container {
-    padding: 2rem 1.5rem;
-  }
 }
