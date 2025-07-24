@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,195 +6,177 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f1f1f1;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
       text-align: center;
-      padding: 30px;
     }
     h1 {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
-    input, select, textarea {
-      margin: 8px;
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select, button, textarea {
+      margin: 5px 0;
       padding: 10px;
-      font-size: 16px;
-      width: 80%;
-      max-width: 400px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      width: 100%;
+      box-sizing: border-box;
     }
     canvas {
       margin-top: 20px;
-      border: 1px solid #ccc;
-      background: white;
-      border-radius: 8px;
     }
-    button {
-      background: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      margin-top: 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
+    .hidden {
+      display: none;
     }
-    button:hover {
-      background: #388e3c;
-    }
-    .hidden { display: none; }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Advanced QR Code Generator</h1>
+    <select id="qrType">
+      <option value="text">Text / URL</option>
+      <option value="wifi">WiFi</option>
+      <option value="contact">Contact</option>
+      <option value="vcard">vCard</option>
+      <option value="photo">Photo (Image URL)</option>
+      <option value="location">Location</option>
+      <option value="event">Calendar Event</option>
+      <option value="email">Email</option>
+      <option value="sms">SMS</option>
+      <option value="call">Phone Call</option>
+      <option value="upi">UPI Payment</option>
+    </select><div id="inputFields"></div>
 
-  <h1>🔧 Advanced QR Code Generator</h1>
+<input type="color" id="qrColor" value="#000000" /> QR Color<br />
+<input type="color" id="bgColor" value="#ffffff" /> Background Color<br />
+<input type="file" id="logoUpload" accept="image/*" /><br />
+<label>Logo Size: <input type="range" id="logoSize" min="10" max="40" value="20" /></label><br />
 
-  <select id="qrType" onchange="updateForm(); generateQR()">
-    <option value="text">Text / URL</option>
-    <option value="wifi">Wi-Fi</option>
-    <option value="contact">Contact</option>
-    <option value="vcard">vCard</option>
-    <option value="photo">Photo URL</option>
-  </select>
+<button onclick="generateQRCode()">Generate QR</button>
+<br />
+<canvas id="qrCanvas"></canvas>
+<br />
+<button onclick="downloadQR()">Download QR</button>
 
-  <div id="form-text">
-    <input type="text" id="qrText" placeholder="Enter text or URL" oninput="generateQR()" />
-  </div>
+  </div>  <script src="https://cdn.jsdelivr.net/npm/qrcode"></script>  <script>
+    const qrType = document.getElementById('qrType');
+    const inputFields = document.getElementById('inputFields');
 
-  <div id="form-wifi" class="hidden">
-    <input type="text" id="wifi-ssid" placeholder="Wi-Fi SSID" oninput="generateQR()" />
-    <input type="text" id="wifi-password" placeholder="Wi-Fi Password" oninput="generateQR()" />
-  </div>
+    qrType.addEventListener('change', updateFields);
+    window.onload = updateFields;
 
-  <div id="form-contact" class="hidden">
-    <input type="text" id="contact-name" placeholder="Name" oninput="generateQR()" />
-    <input type="text" id="contact-phone" placeholder="Phone" oninput="generateQR()" />
-    <input type="text" id="contact-email" placeholder="Email" oninput="generateQR()" />
-  </div>
+    function updateFields() {
+      const type = qrType.value;
+      let html = '';
+      switch (type) {
+        case 'text': html = '<textarea id="text" placeholder="Enter text or URL"></textarea>'; break;case 'wifi': html = `
+      <input id="ssid" placeholder="WiFi SSID" />
+      <input id="password" placeholder="Password" />
+      <select id="encryption">
+        <option value="WPA">WPA</option>
+        <option value="WEP">WEP</option>
+        <option value="nopass">None</option>
+      </select>`; break;
+    case 'contact': html = `
+      <input id="cname" placeholder="Name" />
+      <input id="cphone" placeholder="Phone" />
+      <input id="cemail" placeholder="Email" />`; break;
+    case 'vcard': html = `
+      <input id="vname" placeholder="Full Name" />
+      <input id="vorg" placeholder="Organization" />
+      <input id="vtitle" placeholder="Title" />
+      <input id="vphone" placeholder="Phone" />
+      <input id="vemail" placeholder="Email" />
+      <input id="vurl" placeholder="Website" />
+      <input id="vaddr" placeholder="Address" />`; break;
+    case 'photo': html = '<input id="imgurl" placeholder="Enter Image URL" />'; break;
+    case 'location': html = '<input id="lat" placeholder="Latitude" /><input id="lon" placeholder="Longitude" />'; break;
+    case 'event': html = `
+      <input id="etitle" placeholder="Event Title" />
+      <input id="estart" type="datetime-local" />
+      <input id="eend" type="datetime-local" />
+      <input id="elocation" placeholder="Location" />`; break;
+    case 'email': html = '<input id="emailto" placeholder="Email To" /><input id="subject" placeholder="Subject" /><textarea id="body" placeholder="Message"></textarea>'; break;
+    case 'sms': html = '<input id="smsnum" placeholder="Phone Number" /><textarea id="smsmsg" placeholder="Message"></textarea>'; break;
+    case 'call': html = '<input id="callnum" placeholder="Phone Number" />'; break;
+    case 'upi': html = '<input id="upiid" placeholder="UPI ID" /><input id="upiname" placeholder="Name" /><input id="amount" placeholder="Amount" /><input id="note" placeholder="Note" />'; break;
+  }
+  inputFields.innerHTML = html;
+}
 
-  <div id="form-vcard" class="hidden">
-    <input type="text" id="v-name" placeholder="Full Name" oninput="generateQR()" />
-    <input type="text" id="v-org" placeholder="Organization" oninput="generateQR()" />
-    <input type="text" id="v-title" placeholder="Job Title" oninput="generateQR()" />
-    <input type="text" id="v-phone" placeholder="Phone" oninput="generateQR()" />
-    <input type="text" id="v-email" placeholder="Email" oninput="generateQR()" />
-  </div>
+function generateQRCode() {
+  const canvas = document.getElementById('qrCanvas');
+  const ctx = canvas.getContext('2d');
+  const colorDark = document.getElementById('qrColor').value;
+  const colorLight = document.getElementById('bgColor').value;
+  const type = qrType.value;
 
-  <div id="form-photo" class="hidden">
-    <input type="text" id="photo-url" placeholder="Paste image URL" oninput="generateQR()" />
-  </div>
+  let qrText = '';
+  switch (type) {
+    case 'text': qrText = document.getElementById('text').value; break;
+    case 'wifi':
+      const s = document.getElementById('ssid').value;
+      const p = document.getElementById('password').value;
+      const e = document.getElementById('encryption').value;
+      qrText = `WIFI:T:${e};S:${s};P:${p};;`; break;
+    case 'contact':
+      const n = document.getElementById('cname').value;
+      const t = document.getElementById('cphone').value;
+      const em = document.getElementById('cemail').value;
+      qrText = `MECARD:N:${n};TEL:${t};EMAIL:${em};;`; break;
+    case 'vcard':
+      qrText = `BEGIN:VCARD\nVERSION:3.0\nN:${document.getElementById('vname').value}\nORG:${document.getElementById('vorg').value}\nTITLE:${document.getElementById('vtitle').value}\nTEL:${document.getElementById('vphone').value}\nEMAIL:${document.getElementById('vemail').value}\nURL:${document.getElementById('vurl').value}\nADR:${document.getElementById('vaddr').value}\nEND:VCARD`; break;
+    case 'photo': qrText = document.getElementById('imgurl').value; break;
+    case 'location':
+      qrText = `https://www.google.com/maps?q=${document.getElementById('lat').value},${document.getElementById('lon').value}`; break;
+    case 'event':
+      const start = document.getElementById('estart').value.replace(/[-:]/g, '').slice(0, 15);
+      const end = document.getElementById('eend').value.replace(/[-:]/g, '').slice(0, 15);
+      qrText = `BEGIN:VEVENT\nSUMMARY:${document.getElementById('etitle').value}\nDTSTART:${start}\nDTEND:${end}\nLOCATION:${document.getElementById('elocation').value}\nEND:VEVENT`; break;
+    case 'email':
+      qrText = `mailto:${document.getElementById('emailto').value}?subject=${document.getElementById('subject').value}&body=${document.getElementById('body').value}`; break;
+    case 'sms':
+      qrText = `SMSTO:${document.getElementById('smsnum').value}:${document.getElementById('smsmsg').value}`; break;
+    case 'call':
+      qrText = `tel:${document.getElementById('callnum').value}`; break;
+    case 'upi':
+      qrText = `upi://pay?pa=${document.getElementById('upiid').value}&pn=${document.getElementById('upiname').value}&am=${document.getElementById('amount').value}&cu=INR&tn=${document.getElementById('note').value}`; break;
+  }
 
-  <label>QR Color:</label>
-  <input type="color" id="qrColor" value="#000000" onchange="generateQR()" />
-
-  <label>Background Color:</label>
-  <input type="color" id="bgColor" value="#ffffff" onchange="generateQR()" />
-
-  <label>Upload Logo:</label>
-  <input type="file" id="logoInput" accept="image/*" onchange="generateQR()" />
-
-  <label>Logo Size:</label>
-  <input type="range" id="logoSize" min="10" max="40" value="20" onchange="generateQR()" />
-
-  <canvas id="qrCanvas" width="300" height="300"></canvas>
-  <br>
-  <button onclick="downloadQR()">Download QR</button>
-
-  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
-  <script>
-    function updateForm() {
-      const type = document.getElementById("qrType").value;
-      document.querySelectorAll("#form-text, #form-wifi, #form-contact, #form-vcard, #form-photo").forEach(f => f.classList.add("hidden"));
-      document.getElementById("form-" + type).classList.remove("hidden");
+  QRCode.toCanvas(canvas, qrText, {
+    width: 256,
+    color: {
+      dark: colorDark,
+      light: colorLight
     }
-
-    function getQRData() {
-      const type = document.getElementById("qrType").value;
-      if (type === "text") return document.getElementById("qrText").value;
-      if (type === "wifi") {
-        const ssid = document.getElementById("wifi-ssid").value;
-        const pass = document.getElementById("wifi-password").value;
-        return `WIFI:S:${ssid};T:WPA;P:${pass};;`;
-      }
-      if (type === "contact") {
-        const name = document.getElementById("contact-name").value;
-        const phone = document.getElementById("contact-phone").value;
-        const email = document.getElementById("contact-email").value;
-        return `MECARD:N:${name};TEL:${phone};EMAIL:${email};;`;
-      }
-      if (type === "vcard") {
-        const n = document.getElementById("v-name").value;
-        const o = document.getElementById("v-org").value;
-        const t = document.getElementById("v-title").value;
-        const p = document.getElementById("v-phone").value;
-        const e = document.getElementById("v-email").value;
-        return `BEGIN:VCARD\nVERSION:3.0\nN:${n}\nORG:${o}\nTITLE:${t}\nTEL:${p}\nEMAIL:${e}\nEND:VCARD`;
-      }
-      if (type === "photo") return document.getElementById("photo-url").value;
+  }, () => {
+    const logoInput = document.getElementById('logoUpload');
+    const logoSize = parseInt(document.getElementById('logoSize').value);
+    if (logoInput.files[0]) {
+      const img = new Image();
+      img.onload = () => {
+        const size = canvas.width * logoSize / 100;
+        ctx.drawImage(img, (canvas.width - size) / 2, (canvas.height - size) / 2, size, size);
+      };
+      img.src = URL.createObjectURL(logoInput.files[0]);
     }
+  });
+}
 
-    function generateQR() {
-      const canvas = document.getElementById("qrCanvas");
-      const ctx = canvas.getContext("2d");
-      const text = getQRData() || "Hello";
-      const qrColor = document.getElementById("qrColor").value;
-      const bgColor = document.getElementById("bgColor").value;
-      const logoSizePercent = parseInt(document.getElementById("logoSize").value);
+function downloadQR() {
+  const canvas = document.getElementById('qrCanvas');
+  const link = document.createElement('a');
+  link.download = 'qr-code.png';
+  link.href = canvas.toDataURL();
+  link.click();
+}
 
-      const qr = qrcode(0, "H");
-      qr.addData(text);
-      qr.make();
-
-      const count = qr.getModuleCount();
-      const tileW = canvas.width / count;
-      const tileH = canvas.height / count;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      for (let row = 0; row < count; row++) {
-        for (let col = 0; col < count; col++) {
-          ctx.fillStyle = qr.isDark(row, col) ? qrColor : bgColor;
-          ctx.fillRect(col * tileW, row * tileH, tileW, tileH);
-        }
-      }
-
-      const file = document.getElementById("logoInput").files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const logo = new Image();
-          logo.onload = function () {
-            const size = canvas.width * (logoSizePercent / 100);
-            const x = (canvas.width - size) / 2;
-            const y = (canvas.height - size) / 2;
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(canvas.width/2, canvas.height/2, size/2, 0, Math.PI * 2);
-            ctx.closePath();
-            ctx.clip();
-            ctx.drawImage(logo, x, y, size, size);
-            ctx.restore();
-          };
-          logo.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function downloadQR() {
-      const canvas = document.getElementById("qrCanvas");
-      const link = document.createElement("a");
-      link.download = "qr_code.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    }
-
-    window.onload = () => {
-      updateForm();
-      generateQR();
-    };
   </script>
-
 </body>
 </html>
